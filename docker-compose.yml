@@ -1,0 +1,40 @@
+  version: '3.8'
+
+  services:
+    db:
+      image: mysql:8.0
+      container_name: zest-mysql
+      environment:
+        MYSQL_DATABASE: productdb
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_USER: zestuser
+        MYSQL_PASSWORD: zestpass
+      ports:
+        - "3307:3306"
+      volumes:
+        - mysql_data:/var/lib/mysql
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+
+    app:
+      build: .
+      container_name: zest-product-api
+      ports:
+        - "8080:8080"
+      environment:
+        DB_HOST: db
+        DB_PORT: 3306
+        DB_NAME: productdb
+        DB_USERNAME: zestuser
+        DB_PASSWORD: zestpass
+        JWT_SECRET: ZestIndiaSecretKey2024SuperLongSecretForHS256AlgorithmUsage
+      depends_on:
+        db:
+          condition: service_healthy
+      restart: on-failure
+
+  volumes:
+    mysql_data:
